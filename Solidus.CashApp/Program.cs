@@ -9,10 +9,12 @@ namespace Solidus.CashAppExport
     {
         static async Task<int> Main(string[] args)
         {
-            var inputOption = new Option<FileInfo?>("--input", "Path to a CashApp CSV export file to convert in to QIF format.") { IsRequired = true };
-            var outputOption = new Option<FileInfo?>("--output", "Path to a CashApp CSV export file to convert in to QIF format.") { IsRequired = false };
+            var inputOption = new Option<FileInfo?>("--input", "Path to a CashApp CSV export file.") { IsRequired = true };
+            inputOption.AddAlias("-i");
+            var outputOption = new Option<FileInfo?>("--output", "Path to output QIF file to.") { IsRequired = false };
+            outputOption.AddAlias("-o");
 
-            var rootCommand = new RootCommand("Converts CashApp CSV export files in to QIF format.")
+            var rootCommand = new RootCommand("Converts a CashApp transaction export CSV file into QIF format.")
             {
                 inputOption,
                 outputOption
