@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "CashAppToQIF": {
+      "commandName": "Project",
+      "commandLineArgs": "--input \"C:\\users\\SolidX\\Downloads\\cash_app_report(3).csv\" --output \"D:\\test.qif\""
+    }
+  }
+}
