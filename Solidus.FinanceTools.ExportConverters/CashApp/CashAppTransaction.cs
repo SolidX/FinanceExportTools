@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Globalization;
 
-namespace Solidus.CashApp.ExportConverter
+namespace Solidus.FinanceTools.ExportConverters.CashApp
 {
     public class CashAppTransaction
     {

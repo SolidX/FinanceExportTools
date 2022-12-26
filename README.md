@@ -1,4 +1,4 @@
-# CashAppExportTools
+# Finance Export Conversion Tools
 Convert CashApp transaction export CSV files into QIF format
 
 ## CLI Usage

@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Linq;
 
-namespace Solidus.CashApp.ExportConverter
+namespace Solidus.FinanceTools
 {
     public static class CurrencyTools
     {

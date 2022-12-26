@@ -1,9 +1,9 @@
 ﻿using CsvHelper;
-using Solidus.CashApp.ExportConverter;
+using Solidus.FinanceTools.ExportConverters.CashApp;
 using System.CommandLine;
 using System.Globalization;
 
-namespace Solidus.CashAppExport
+namespace Solidus.FinanceTools
 {
     class Program
     {

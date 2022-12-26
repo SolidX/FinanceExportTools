@@ -1,6 +1,6 @@
 ﻿using CsvHelper.Configuration;
 
-namespace Solidus.CashApp.ExportConverter
+namespace Solidus.FinanceTools.ExportConverters.CashApp
 {
     public class CashAppExportMapper : ClassMap<CashAppTransaction>
     {
