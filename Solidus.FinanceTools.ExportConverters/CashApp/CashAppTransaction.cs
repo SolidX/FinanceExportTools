@@ -12,7 +12,7 @@ namespace Solidus.FinanceTools.ExportConverters.CashApp
             get {
                 var enUS = new CultureInfo("en-US");
 
-                var dt = "";
+                string dt;
                 var tz = RawDate.Substring(RawDate.LastIndexOf(" ") + 1);
 
                 if (ExportExtensions.TIMEZONE_OFFSET_MAP.ContainsKey(tz))

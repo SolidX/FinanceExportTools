@@ -161,5 +161,128 @@ namespace Solidus.FinanceTools
             doc.Save(output);
         }
         #endregion
+        #region Discover Bank
+        /// <summary>
+        /// Converts an IEnumerable of DiscoverBankTransaction List of QIF Transactions
+        /// </summary>
+        /// <param name="transactions">The Discover Bank transactions to convert</param>
+        /// <returns>A list of QIF transactions</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="transactions"/> is null</exception>
+        public static IEnumerable<BasicTransaction> ToQifTransactionList(this List<DiscoverBankTransaction> transactions)
+        {
+            if (transactions == null) throw new ArgumentNullException(nameof(transactions));
+            if (!transactions.Any()) return Enumerable.Empty<BasicTransaction>();
+
+            var output = new List<BasicTransaction>();
+            foreach (var txn in transactions)
+            {
+                var transaction = new BasicTransaction
+                {
+                    Date = txn.TransactionDate.ToUniversalTime(),
+                    ClearedStatus = "X",
+                    Memo = txn.Description,
+                    Amount = txn.Credit != 0 ? txn.Credit : txn.Debit * -1
+                };
+
+                output.Add(transaction);
+            }
+
+            return output;
+        }
+
+        /// <summary>
+        /// Generates and outputs a QIF file from the given <paramref name="transactions"/>
+        /// </summary>
+        /// <param name="transactions">A List of DiscoverBankTransactions</param>
+        /// <param name="output">Stream to write QIF file to</param>
+        public static void ExportAsQIFFile(this List<DiscoverBankTransaction> transactions, Stream output)
+        {
+            QifDocument doc = new QifDocument();
+            var qif = transactions.ToQifTransactionList();
+
+            foreach (var t in qif)
+                doc.BankTransactions.Add(t);
+
+            doc.Save(output);
+        }
+
+        /// <summary>
+        /// Generates and outputs a QIF file from the given <paramref name="transactions"/>
+        /// </summary>
+        /// <param name="transactions">A List of DiscoverBankTransactions</param>
+        /// <param name="output">TextWriter to write QIF file to</param>
+        public static void ExportAsQIFFile(this List<DiscoverBankTransaction> transactions, TextWriter output)
+        {
+            QifDocument doc = new QifDocument();
+            var qif = transactions.ToQifTransactionList();
+
+            foreach (var t in qif)
+                doc.BankTransactions.Add(t);
+
+            doc.Save(output);
+        }
+        #endregion
+        #region Discover Card
+        /// <summary>
+        /// Converts an IEnumerable of DiscoverCardTransaction List of QIF Transactions
+        /// </summary>
+        /// <param name="transactions">The Discover Credit Card transactions to convert</param>
+        /// <returns>A list of QIF transactions</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="transactions"/> is null</exception>
+        public static IEnumerable<BasicTransaction> ToQifTransactionList(this List<DiscoverCardTransaction> transactions)
+        {
+            if (transactions == null) throw new ArgumentNullException(nameof(transactions));
+            if (!transactions.Any()) return Enumerable.Empty<BasicTransaction>();
+
+            var output = new List<BasicTransaction>();
+            foreach (var txn in transactions)
+            {
+                var transaction = new BasicTransaction
+                {
+                    Date = txn.TransactionDate.ToUniversalTime(),
+                    ClearedStatus = "X",
+                    Memo = txn.Description,
+                    Amount = txn.Amount * -1,
+                    Category = txn.Category
+                };
+
+                output.Add(transaction);
+            }
+
+            return output;
+        }
+
+        /// <summary>
+        /// Generates and outputs a QIF file from the given <paramref name="transactions"/>
+        /// </summary>
+        /// <param name="transactions">A List of DiscoverCardTransaction</param>
+        /// <param name="output">Stream to write QIF file to</param>
+        public static void ExportAsQIFFile(this List<DiscoverCardTransaction> transactions, Stream output)
+        {
+            QifDocument doc = new QifDocument();
+            var qif = transactions.ToQifTransactionList();
+
+            foreach (var t in qif)
+                doc.CreditCardTransactions.Add(t);
+
+            doc.Save(output);
+        }
+
+        /// <summary>
+        /// Generates and outputs a QIF file from the given <paramref name="transactions"/>
+        /// </summary>
+        /// <param name="transactions">A List of DiscoverCardTransaction</param>
+        /// <param name="output">TextWriter to write QIF file to</param>
+        public static void ExportAsQIFFile(this List<DiscoverCardTransaction> transactions, TextWriter output)
+        {
+            QifDocument doc = new QifDocument();
+            var qif = transactions.ToQifTransactionList();
+
+            foreach (var t in qif)
+                doc.CreditCardTransactions.Add(t);
+
+            doc.Save(output);
+        }
+        #endregion
     }
 }
