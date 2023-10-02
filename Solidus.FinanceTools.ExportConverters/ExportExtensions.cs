@@ -2,6 +2,7 @@
 using IonTechnologies.Qif.Transactions;
 using Solidus.FinanceTools.ExportConverters.CashApp;
 using Solidus.FinanceTools.ExportConverters.Discover;
+using Solidus.FinanceTools.ExportConverters.Venmo;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -280,6 +281,72 @@ namespace Solidus.FinanceTools
 
             foreach (var t in qif)
                 doc.CreditCardTransactions.Add(t);
+
+            doc.Save(output);
+        }
+        #endregion
+        #region Venmo
+        /// <summary>
+        /// Converts an IEnumerable of VenmoTransactions List of QIF Transactions
+        /// </summary>
+        /// <param name="transactions">The Venmo transactions to convert</param>
+        /// <returns>A list of QIF transactions</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="transactions"/> is null</exception>
+        public static IEnumerable<BasicTransaction> ToQifTransactionList(this List<VenmoTransaction> transactions)
+        {
+            if (transactions == null) throw new ArgumentNullException(nameof(transactions));
+
+            var output = new List<BasicTransaction>();
+            foreach (var txn in transactions)
+            {
+                if (txn.BeginningBalance.HasValue || txn.EndingBalance.HasValue)
+                    continue;
+
+                var transaction = new BasicTransaction
+                {
+                    Date = txn.Date.HasValue ? txn.Date.Value.ToLocalTime() : DateTime.Today,
+                    Number = txn.TransactionID,
+                    ClearedStatus = txn.Status.Equals("Complete", StringComparison.InvariantCultureIgnoreCase) ? "C" : "",
+                    Payee = txn.Total.Value >= 0 ? txn.From : txn.To,
+                    Memo = txn.Note,
+                    Amount = txn.Total.Value
+                    //TODO: Split transaction for anything with a Fee
+                };
+
+                output.Add(transaction);
+            }
+
+            return output;
+        }
+
+        /// <summary>
+        /// Generates and outputs a QIF file from the given <paramref name="transactions"/>
+        /// </summary>
+        /// <param name="transactions">A List of CashAppTransactions</param>
+        /// <param name="output">Stream to write QIF file to</param>
+        public static void ExportAsQIFFile(this List<VenmoTransaction> transactions, Stream output)
+        {
+            QifDocument doc = new QifDocument();
+            var qif = transactions.ToQifTransactionList();
+
+            foreach (var t in qif)
+                doc.CashTransactions.Add(t);
+
+            doc.Save(output);
+        }
+
+        /// <summary>
+        /// Generates and outputs a QIF file from the given <paramref name="transactions"/>
+        /// </summary>
+        /// <param name="transactions">A List of CashAppTransactions</param>
+        /// <param name="output">TextWriter to write QIF file to</param>
+        public static void ExportAsQIFFile(this List<VenmoTransaction> transactions, TextWriter output)
+        {
+            QifDocument doc = new QifDocument();
+            var qif = transactions.ToQifTransactionList();
+
+            foreach (var t in qif)
+                doc.CashTransactions.Add(t);
 
             doc.Save(output);
         }

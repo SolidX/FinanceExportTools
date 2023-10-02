@@ -1,6 +1,8 @@
 ﻿using CsvHelper;
+using CsvHelper.Configuration;
 using Solidus.FinanceTools.ExportConverters.CashApp;
 using Solidus.FinanceTools.ExportConverters.Discover;
+using Solidus.FinanceTools.ExportConverters.Venmo;
 using System.CommandLine;
 using System.Globalization;
 
@@ -12,7 +14,7 @@ namespace Solidus.FinanceTools
         {
             var returnCode = 0;
             
-            var typeArgument = new Argument<string>("Input Type", "The type of the input file to convert. Only 'CashApp', 'DiscoverBank', 'DiscoverCard' are supported at the moment.");
+            var typeArgument = new Argument<string>("Input Type", "The type of the input file to convert. Only 'CashApp', 'DiscoverBank', 'DiscoverCard', and 'Venmo' are supported at the moment.");
 
             var inputOption = new Option<FileInfo?>("--input", "Path to a CashApp CSV export file.") { IsRequired = true };
             inputOption.AddAlias("-i");
@@ -30,7 +32,10 @@ namespace Solidus.FinanceTools
             {
                 try
                 {
-                    ConvertFile(type, input!, output);
+                    if (type.Equals("Venmo", StringComparison.InvariantCultureIgnoreCase))
+                        ConvertVenmoFile(input!, output);
+                    else
+                        ConvertFile(type, input!, output);
                 }
                 catch (ArgumentException ex)
                 {
@@ -76,6 +81,35 @@ namespace Solidus.FinanceTools
                     default:
                         throw new ArgumentException("Invalid conversion type requested.", nameof(conversionType));
                 }
+            }
+        }
+
+        /// <summary>
+        /// Reads in a provided <paramref name="inputFile"/> containing Venmo financial transactions and converts it into QIF format.
+        /// </summary>
+        /// <param name="inputFile">The CSV file to convert</param>
+        /// <param name="outputFile">The QIF file to produce</param>
+        static void ConvertVenmoFile(FileInfo inputFile, FileInfo? outputFile = null)
+        {
+            var outputPath = outputFile == null ? Path.Combine(inputFile.DirectoryName, Path.GetFileNameWithoutExtension(inputFile.Name) + ".qif") : outputFile.FullName;
+
+            var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+            {
+                HasHeaderRecord = true,
+                MissingFieldFound = null,
+                ShouldSkipRecord = (records) =>
+                {
+                    return records.Row.Parser.Record.All(String.IsNullOrWhiteSpace) || !String.IsNullOrWhiteSpace(records.Row[0]);
+                }
+            };
+
+            using (var reader = new StreamReader(inputFile.FullName))
+            using (var csv = new CsvReader(reader, config))
+            using (var writer = File.CreateText(outputPath))
+            {
+                csv.Context.RegisterClassMap<VenmoExportMapper>();
+
+                csv.GetRecords<VenmoTransaction>().ToList().ExportAsQIFFile(writer);
             }
         }
     }

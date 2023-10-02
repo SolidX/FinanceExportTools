@@ -6,6 +6,7 @@ It was originally created to simplify importing CashApp transactions in to [Home
 - CashApp Transactions
 - Discover Bank Statement
 - Discover Card Statement
+- Venmo Account Statement
 
 ## CLI Usage
 ```
@@ -13,7 +14,7 @@ Usage:
   Solidus.FinanceTools <Input Type> [options]
 
 Arguments:
-  <Input Type>  The type of the input file to convert. Only 'CashApp', 'DiscoverBank', 'DiscoverCard' are supported at
+  <Input Type>  The type of the input file to convert. Only 'CashApp', 'DiscoverBank', 'DiscoverCard', and 'Venmo' are supported at
                 the moment.
 
 Options:
