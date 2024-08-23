@@ -117,7 +117,7 @@ namespace Solidus.FinanceTools
                 {
                     Date = txn.Date.ToUniversalTime(),
                     Number = txn.TransactionID,
-                    ClearedStatus = "X",
+                    ClearedStatus = txn.Status.Equals("Complete", StringComparison.InvariantCultureIgnoreCase) ? "c" : "",
                     Payee = txn.SenderReceiverName,
                     Memo = txn.Notes,
                     Amount = txn.Amount
@@ -180,7 +180,7 @@ namespace Solidus.FinanceTools
                 var transaction = new BasicTransaction
                 {
                     Date = txn.TransactionDate.ToUniversalTime(),
-                    ClearedStatus = "X",
+                    ClearedStatus = "c",
                     Memo = txn.Description,
                     Amount = txn.Credit != 0 ? txn.Credit : txn.Debit * -1
                 };
@@ -201,6 +201,13 @@ namespace Solidus.FinanceTools
             QifDocument doc = new QifDocument();
             var qif = transactions.ToQifTransactionList();
 
+            var acct = new AccountListTransaction
+            {
+                Name = "Discover",
+                Type = "Bank"
+            };
+            doc.AccountListTransactions.Add(acct);
+
             foreach (var t in qif)
                 doc.BankTransactions.Add(t);
 
@@ -216,6 +223,13 @@ namespace Solidus.FinanceTools
         {
             QifDocument doc = new QifDocument();
             var qif = transactions.ToQifTransactionList();
+
+            var acct = new AccountListTransaction
+            {
+                Name = "Discover",
+                Type = "Bank"
+            };
+            doc.AccountListTransactions.Add(acct);
 
             foreach (var t in qif)
                 doc.BankTransactions.Add(t);
@@ -241,7 +255,7 @@ namespace Solidus.FinanceTools
                 var transaction = new BasicTransaction
                 {
                     Date = txn.TransactionDate.ToUniversalTime(),
-                    ClearedStatus = "X",
+                    ClearedStatus = "c",
                     Memo = txn.Description,
                     Amount = txn.Amount * -1,
                     Category = txn.Category
@@ -263,6 +277,13 @@ namespace Solidus.FinanceTools
             QifDocument doc = new QifDocument();
             var qif = transactions.ToQifTransactionList();
 
+            var acct = new AccountListTransaction
+            {
+                Name = "Discover",
+                Type = "CCard"
+            };
+            doc.AccountListTransactions.Add(acct);
+
             foreach (var t in qif)
                 doc.CreditCardTransactions.Add(t);
 
@@ -278,6 +299,13 @@ namespace Solidus.FinanceTools
         {
             QifDocument doc = new QifDocument();
             var qif = transactions.ToQifTransactionList();
+
+            var acct = new AccountListTransaction
+            {
+                Name = "Discover",
+                Type = "CCard"
+            };
+            doc.AccountListTransactions.Add(acct);
 
             foreach (var t in qif)
                 doc.CreditCardTransactions.Add(t);
@@ -306,7 +334,7 @@ namespace Solidus.FinanceTools
                 {
                     Date = txn.Date.HasValue ? txn.Date.Value.ToLocalTime() : DateTime.Today,
                     Number = txn.TransactionID,
-                    ClearedStatus = txn.Status.Equals("Complete", StringComparison.InvariantCultureIgnoreCase) ? "C" : "",
+                    ClearedStatus = txn.Status.Equals("Complete", StringComparison.InvariantCultureIgnoreCase) ? "c" : "",
                     Payee = txn.Total.Value >= 0 ? txn.From : txn.To,
                     Memo = txn.Note,
                     Amount = txn.Total.Value
@@ -320,14 +348,25 @@ namespace Solidus.FinanceTools
         }
 
         /// <summary>
-        /// Generates and outputs a QIF file from the given <paramref name="transactions"/>
+        /// Generates and outputs a QIF file from the given <paramref name="statement"/>
         /// </summary>
-        /// <param name="transactions">A List of CashAppTransactions</param>
+        /// <param name="statement">A Venmo Statement</param>
         /// <param name="output">Stream to write QIF file to</param>
-        public static void ExportAsQIFFile(this List<VenmoTransaction> transactions, Stream output)
+        public static void ExportAsQIFFile(this VenmoStatement statement, Stream output)
         {
             QifDocument doc = new QifDocument();
-            var qif = transactions.ToQifTransactionList();
+
+            var acct = new AccountListTransaction
+            {
+                Name = $"Venmo - {statement.Account}"
+            };
+
+            if (statement.EndingBalance.HasValue)
+                acct.StatementBalance = statement.EndingBalance.Value;
+
+            doc.AccountListTransactions.Add(acct);
+
+            var qif = statement.Transactions.ToQifTransactionList();
 
             foreach (var t in qif)
                 doc.CashTransactions.Add(t);
@@ -336,14 +375,25 @@ namespace Solidus.FinanceTools
         }
 
         /// <summary>
-        /// Generates and outputs a QIF file from the given <paramref name="transactions"/>
+        /// Generates and outputs a QIF file from the given <paramref name="statement"/>
         /// </summary>
-        /// <param name="transactions">A List of CashAppTransactions</param>
+        /// <param name="statement">A Venmo Statement</param>
         /// <param name="output">TextWriter to write QIF file to</param>
-        public static void ExportAsQIFFile(this List<VenmoTransaction> transactions, TextWriter output)
+        public static void ExportAsQIFFile(this VenmoStatement statement, TextWriter output)
         {
             QifDocument doc = new QifDocument();
-            var qif = transactions.ToQifTransactionList();
+
+            var acct = new AccountListTransaction
+            {
+                Name = $"Venmo - {statement.Account}"
+            };
+
+            if (statement.EndingBalance.HasValue)
+                acct.StatementBalance = statement.EndingBalance.Value;
+
+            doc.AccountListTransactions.Add(acct);
+
+            var qif = statement.Transactions.ToQifTransactionList();
 
             foreach (var t in qif)
                 doc.CashTransactions.Add(t);

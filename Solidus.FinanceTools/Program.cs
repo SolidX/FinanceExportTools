@@ -103,13 +103,24 @@ namespace Solidus.FinanceTools
                 }
             };
 
+            var rawHeader = "";
+
+            using (var reader = new StreamReader(inputFile.FullName))
+            using (var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)))
+            {
+                csv.Read();
+                rawHeader = csv.GetField(0);
+            }
+
             using (var reader = new StreamReader(inputFile.FullName))
             using (var csv = new CsvReader(reader, config))
             using (var writer = File.CreateText(outputPath))
             {
                 csv.Context.RegisterClassMap<VenmoExportMapper>();
-
-                csv.GetRecords<VenmoTransaction>().ToList().ExportAsQIFFile(writer);
+                
+                var rawTxns = csv.GetRecords<VenmoTransaction>().ToList();
+                var statement = new VenmoStatement(rawHeader, rawTxns);
+                statement.ExportAsQIFFile(writer);
             }
         }
     }
