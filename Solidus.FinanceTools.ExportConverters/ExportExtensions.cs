@@ -105,7 +105,7 @@ namespace Solidus.FinanceTools
         /// <param name="transactions">The CashApp transactions to convert</param>
         /// <returns>A list of QIF transactions</returns>
         /// <exception cref="ArgumentNullException">If <paramref name="transactions"/> is null</exception>
-        public static IEnumerable<BasicTransaction> ToQifTransactionList(this List<CashAppTransaction> transactions)
+        public static IEnumerable<BasicTransaction> ToQifTransactionList(this IEnumerable<CashAppTransaction> transactions)
         {
             if (transactions == null) throw new ArgumentNullException(nameof(transactions));
             if (!transactions.Any()) return Enumerable.Empty<BasicTransaction>();
@@ -154,7 +154,7 @@ namespace Solidus.FinanceTools
         public static void ExportAsQIFFile(this List<CashAppTransaction> transactions, TextWriter output)
         {
             QifDocument doc = new QifDocument();
-            var qif = transactions.ToQifTransactionList();
+            var qif = transactions.Where(t => t.TransactionType != "Account Notifications").ToQifTransactionList();
 
             foreach (var t in qif)
                 doc.CashTransactions.Add(t);
